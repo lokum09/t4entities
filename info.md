@@ -1,5 +1,7 @@
 T4Entities
 
+---
+
 - ogolna zasada dzialania
 - struktura i konfiguracja
 - jak uruchamiac
