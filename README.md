@@ -69,7 +69,7 @@ List<TableOutputTypes.dbo.GetBrandsByIds_Result> getBrandsByIds_Result = context
     - MyDbContext.TableInputTypes.part.cs
     - MyDbContext.TableOutputTypes.part.cs
 
-4. Configure your DbContext class:
+4. Configure your DbContext class to use the generated classes:
     ```c#
         public partial class MyDbContext : DbContext
         {
