@@ -51,6 +51,15 @@ List<TableOutputTypes.dbo.GetBrandsByIds_Result> getBrandsByIds_Result = context
     set CONNECTION_STRING=<your connection string>
     set NAMESPACE=<target namespace>
     set CLASS_NAME=<context class name>
+
+    "%TT_PATH%" -a !!ConnectionString!"%CONNECTION_STRING%" -a !!Namespace!"%NAMESPACE%" -a !!ClassName!"%CLASS_NAME%" -out "%~dp0.\%CLASS_NAME%.TableInputTypes.part.cs" "%~dp0..\src\%CLASS_NAME%.TableInputTypes.part.t4"
+
+    "%TT_PATH%" -a !!ConnectionString!"%CONNECTION_STRING%" -a !!Namespace!"%NAMESPACE%" -a !!ClassName!"%CLASS_NAME%" -out "%~dp0.\%CLASS_NAME%.TableOutputTypes.part.cs" "%~dp0..\src\%CLASS_NAME%.TableOutputTypes.part.t4"
+
+    "%TT_PATH%" -a !!ConnectionString!"%CONNECTION_STRING%" -a !!Namespace!"%NAMESPACE%" -a !!ClassName!"%CLASS_NAME%" -out "%~dp0.\%CLASS_NAME%.TableFunctions.part.cs" "%~dp0..\src\%CLASS_NAME%.TableFunctions.part.t4"
+
+    "%TT_PATH%" -a !!ConnectionString!"%CONNECTION_STRING%" -a !!Namespace!"%NAMESPACE%" -a !!ClassName!"%CLASS_NAME%" -out "%~dp0.\%CLASS_NAME%.ScalarFunctions.part.cs" "%~dp0..\src\%CLASS_NAME%.ScalarFunctions.part.t4"
+
     ```
 
 3. Executing the run.bat file will create these four cs files:
@@ -61,16 +70,16 @@ List<TableOutputTypes.dbo.GetBrandsByIds_Result> getBrandsByIds_Result = context
     - MyDbContext.TableOutputTypes.part.cs
 
 4. Configure your DbContext class:
-```c#
-    public partial class MyDbContext : DbContext
-    {
-        ...
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+    ```c#
+        public partial class MyDbContext : DbContext
         {
-            OnScalarFunctionsCreatingPartial(modelBuilder);
-            OnTableFunctionsCreatingPartial(modelBuilder);
             ...
+
+            partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+            {
+                OnScalarFunctionsCreatingPartial(modelBuilder);
+                OnTableFunctionsCreatingPartial(modelBuilder);
+                ...
+            }
         }
-    }
-```
+    ```
