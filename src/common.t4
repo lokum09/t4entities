@@ -1,0 +1,363 @@
+<#+
+
+public enum TypeCategoryEnum
+{
+	Embedded = 0,
+	Scalar = 1,
+	Table = 2,
+	Assembly = 3
+}
+
+private readonly string ScalarFunctions = nameof(ScalarFunctions);
+private readonly string TableFunctions = nameof(TableFunctions);
+private readonly string TableInputTypes = nameof(TableInputTypes);
+private readonly string TableOutputTypes = nameof(TableOutputTypes);
+
+private string Namespace => Host.ResolveParameterValue(null, null, "Namespace");
+
+private string ClassName => Host.ResolveParameterValue(null, null, "ClassName");
+
+private string ConnectionString => Host.ResolveParameterValue(null, null, "ConnectionString");
+
+private string[] ExcludedSqlTypes { get; } = new string[]
+{
+	"xml", "geography", "geometry", "hierarchyid", "sql_variant"
+};
+
+private string ExcludedSqlTypesAsString => string.Concat("'", string.Join("', '", ExcludedSqlTypes), "'");
+
+private Type[] ObjectTypes { get; } = new Type[]
+{
+	typeof(string),
+	typeof(byte[]),
+	typeof(object)
+};
+
+private bool IsObjectType(Type type)
+{
+	return ObjectTypes.Contains(type);
+}
+
+private Type[] PrimitiveTypes => DotnetAndSqlTypeMapping.Keys
+	.Where(x => !ObjectTypes.Contains(x))
+	.ToArray();
+
+private bool IsPrimitiveType(Type type)
+{
+	return PrimitiveTypes.Contains(type);
+}
+
+private bool IsPrimitiveType(String typeName)
+{
+	return PrimitiveTypes.Select(x => x.Name).Contains(typeName);
+}
+
+private string Tab(int count)
+{
+	return new string('\t', count);
+}
+
+private string Content(string content)
+{
+    return string.Concat(content, string.IsNullOrEmpty(content) ? string.Empty : Environment.NewLine);
+}
+
+public string PascalCase(string s)
+{
+	string result = null;
+	if (string.IsNullOrEmpty(s) == false)
+	{
+		char[] a = s.ToCharArray();
+		a[0] = char.ToUpper(a[0]);
+		result = new string(a);
+	}
+    return result; 
+}
+
+private Type ConvertSqlToDotNetType(string type)
+{
+   	foreach (var item in DotnetAndSqlTypeMapping)
+    {
+		foreach (var sqlType in item.Value)
+		{
+			if (string.Equals(sqlType, type, StringComparison.OrdinalIgnoreCase))
+			{
+				return item.Key;
+			}
+		}
+    }
+    return null;
+}
+
+private string ConvertDotNetToSqlType(Type type)
+{
+    return DotnetAndSqlTypeMapping.TryGetValue(type, out string[] items) ? items[0] : null;
+}
+
+private string FixSqlType(string type)
+{
+    foreach (var item in DotnetAndSqlTypeMapping)
+    {
+		foreach (var sqlType in item.Value)
+		{
+			if (string.Equals(sqlType, type, StringComparison.OrdinalIgnoreCase))
+			{
+				return sqlType;
+			}
+		}
+    }
+    return null;
+}
+
+private Dictionary<Type, string[]> DotnetAndSqlTypeMapping = new()
+{
+    [typeof(byte)]				= new[] { "TinyInt" },
+    [typeof(short)]				= new[] { "SmallInt" },
+    [typeof(int)]				= new[] { "Int" },
+    [typeof(long)]				= new[] { "BigInt" },
+    [typeof(decimal)]			= new[] { "Decimal", "Money", "SmallMoney", "Numeric" },
+    [typeof(double)]			= new[] { "Float" },
+    [typeof(float)]				= new[] { "Real" },
+    [typeof(string)]			= new[] { "NVarChar", "NChar", "NText", "VarChar", "Text", "Xml" },
+    [typeof(char)]				= new[] { "Char" },
+    [typeof(bool)]				= new[] { "Bit" },
+    [typeof(DateTime)]			= new[] { "DateTime2", "DateTime", "SmallDateTime", "Date" },
+    [typeof(DateTimeOffset)]	= new[] { "DateTimeOffset" },
+    [typeof(TimeSpan)]			= new[] { "Time" },		
+    [typeof(byte[])]			= new[] { "Binary", "FileStream", "Image", "RowVersion", "TimeStamp", "VarBinary" }, // geography, geometry, hierarchyid
+    [typeof(Guid)]				= new[] { "UniqueIdentifier" },
+    [typeof(object)]			= new[] { "sql_variant" }
+};
+
+private string[] AllowedSqlTypes => DotnetAndSqlTypeMapping
+	.SelectMany(x => x.Value)
+	.Distinct()
+	.ToArray();
+
+private bool IsAllowedSqlType(string type) => AllowedSqlTypes.Contains(type, StringComparer.OrdinalIgnoreCase);
+
+private struct DbObject
+{
+	public string FunctionSchema { get; set; }
+	public string FunctionName { get; set; }
+	public string FunctionType { get; set; }
+	public List<DbArgument> Arguments { get; set; }
+}
+
+private struct DbArgument
+{
+	public string ArgumentName { get; set; }
+	public string SqlType { get; set; }
+	public int SqlTypeLength { get; set; }
+	public string SqlBaseType { get; set; }
+	public string DotNetType { get; set; }
+	public TypeCategoryEnum TypeCategory { get; set; }
+}
+
+private List<DbObject> dbObjects = new List<DbObject>();
+
+private List<DbObject> GetDbScalarObjects() => GetDbObjects(true);
+
+private List<DbObject> GetDbTableObjects() => GetDbObjects(false);
+
+private List<DbObject> GetDbObjects(bool returnScalarFunctions)
+{
+	if (dbObjects.Count == 0)
+	{
+		var dbTypes = GetDbTypes();
+
+		using (var conn = new SqlConnection(ConnectionString))
+		{
+			conn.Open();
+
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = @$"
+				SELECT 
+					r.ROUTINE_SCHEMA AS [function_schema],
+					r.ROUTINE_NAME AS [function_name], 
+					r.DATA_TYPE AS [function_type], 
+					p.PARAMETER_NAME AS [parameter_name],
+					p.DATA_TYPE AS [parameter_type],
+					p.USER_DEFINED_TYPE_SCHEMA AS [type_schema],
+					p.USER_DEFINED_TYPE_NAME AS [type_name]
+					--r.*
+				FROM INFORMATION_SCHEMA.ROUTINES r
+				INNER JOIN INFORMATION_SCHEMA.PARAMETERS p ON r.ROUTINE_SCHEMA = p.SPECIFIC_SCHEMA AND r.ROUTINE_NAME = p.SPECIFIC_NAME
+				WHERE r.ROUTINE_TYPE = 'FUNCTION' AND p.PARAMETER_MODE = 'IN' 
+					AND r.DATA_TYPE {(returnScalarFunctions ? "!=" : "=")} 'TABLE'
+					AND NOT EXISTS (
+						SELECT 1 
+						FROM INFORMATION_SCHEMA.PARAMETERS 
+						WHERE SPECIFIC_SCHEMA = p.SPECIFIC_SCHEMA AND SPECIFIC_NAME = p.SPECIFIC_NAME AND DATA_TYPE IN ({ExcludedSqlTypesAsString})
+					)
+				ORDER BY p.SPECIFIC_SCHEMA, p.SPECIFIC_NAME, p.ORDINAL_POSITION
+				";
+
+				var results = new Dictionary<string, DbObject>();
+		
+				SqlDataReader reader = cmd.ExecuteReader();
+				while (reader.Read())
+				{
+					var functionSchema = reader["function_schema"].ToString();
+					var functionName = reader["function_name"].ToString();
+					var functionType = reader["function_type"].ToString();
+					var functionFullName = $"{functionSchema}.{functionName}";
+
+					if (results.TryGetValue(functionFullName, out var dbObject) == false)
+					{
+						dbObject = new DbObject(){
+							FunctionSchema = functionSchema,
+							FunctionName = functionName,
+							FunctionType = returnScalarFunctions 
+								? ConvertSqlToDotNetType(functionType).Name
+								: $"{ClassName}.TableOutputTypes.{functionFullName}_Result",
+							Arguments = new List<DbArgument>()
+						};
+						results.Add(functionFullName, dbObject);
+					}
+
+					var parameterName = reader["parameter_name"].ToString();
+					var parameterType = reader["parameter_type"].ToString();
+					//var parameterLength = (int) reader["parameter_length"];
+
+					var typeSchema = reader["type_schema"].ToString();
+					var typeName = reader["type_name"].ToString();
+					var dbType = dbTypes.SingleOrDefault(x => x.TypeSchema == typeSchema && x.TypeName == typeName);
+					var typeCategory = dbType.TypeCategory;
+
+					string dotNetType = typeCategory == TypeCategoryEnum.Table
+						? $"{ClassName}.{TableInputTypes}.{typeSchema}.{typeName}"
+						: ConvertSqlToDotNetType(typeCategory == TypeCategoryEnum.Scalar ? dbType.BaseType : parameterType).Name;
+
+					dbObject.Arguments.Add(new DbArgument {
+						ArgumentName = parameterName,
+						DotNetType = dotNetType,
+						SqlType = typeCategory == TypeCategoryEnum.Table ? $"{typeSchema}.{typeName}" : parameterType,
+						SqlBaseType = dbType.BaseType == null ? null : FixSqlType(dbType.BaseType),
+						TypeCategory = typeCategory
+					}); 
+				}
+				reader.Close();
+
+				dbObjects = results.Values.ToList();
+			}
+		}
+	}
+
+	return dbObjects;
+}
+
+private string CreateSqlParametersSection(DbObject dbObject, StringBuilder dotNetArgs, StringBuilder sqlArgs)
+{
+	foreach(var arg in dbObject.Arguments)
+	{
+		var dotnetTypeName = string.Concat(arg.DotNetType, IsPrimitiveType(arg.DotNetType) ? "?" : string.Empty);
+
+		dotNetArgs.Append($"{(dotNetArgs.Length > 0 ? ", " : string.Empty)}{dotnetTypeName} {arg.ArgumentName}");
+		sqlArgs.Append($"{(sqlArgs.Length > 0 ? ", " : string.Empty)}{arg.ArgumentName}");
+	}
+
+	var sb = new StringBuilder();
+	sb.Append($"{Tab(3)}var parameters = new SqlParameter[]\n{Tab(3)}{{\n");
+	foreach (var arg in dbObject.Arguments)
+	{
+		if (arg.TypeCategory == TypeCategoryEnum.Embedded)
+		{
+			sb.Append($"{Tab(4)}new SqlParameter(\"{arg.ArgumentName}\", {arg.ArgumentName} ?? (object) DBNull.Value),\n");
+		}
+		else if (arg.TypeCategory == TypeCategoryEnum.Scalar)
+		{
+			sb.Append($"{Tab(4)}new SqlParameter(\"{arg.ArgumentName}\", {arg.ArgumentName}){{ SqlDbType = SqlDbType.{arg.SqlBaseType} }},\n");
+		}
+		else if (arg.TypeCategory == TypeCategoryEnum.Table)
+		{
+			sb.Append($"{Tab(4)}new SqlParameter(\"{arg.ArgumentName}\", {arg.ArgumentName} != null ? {arg.ArgumentName}.ToRecords() : null){{ SqlDbType = SqlDbType.Structured, TypeName = \"{arg.SqlType}\" }},\n");
+		}
+	}
+	sb.Append($"{Tab(3)}}};\n");
+	return sb.ToString();
+}
+
+private struct DbType
+{
+	public string TypeSchema { get; set; }
+	public string TypeName { get; set; }
+	public string BaseType { get; set; }
+	public TypeCategoryEnum TypeCategory { get; set; }
+}
+
+private List<DbType> dbTypes = new List<DbType>();
+
+private List<DbType> GetDbTypes()
+{
+	if (dbTypes.Count == 0)
+	{
+		using (var conn = new SqlConnection(ConnectionString))
+		{
+			conn.Open();
+
+			using (var cmd = conn.CreateCommand())
+			{
+				cmd.CommandText = @$"
+					SELECT 
+						[type_schema]	= s.[name],
+						[type_name]		= t.[Name],
+						[base_type]		= bt.[name],
+						[type_category] = {(int) TypeCategoryEnum.Scalar}
+					FROM sys.types AS t
+					INNER JOIN sys.schemas AS s ON t.[schema_id] = s.[schema_id]
+					INNER JOIN sys.types AS bt ON t.system_type_id = bt.user_type_id
+					WHERE t.is_user_defined = 1 AND t.is_table_type = 0
+					UNION
+					SELECT
+						s.[name],
+						t.[name],
+						NULL,
+						{(int) TypeCategoryEnum.Table}
+					FROM sys.table_types AS t
+					INNER JOIN sys.schemas AS s ON t.[schema_id] = s.[schema_id]
+					WHERE t.is_user_defined = 1 AND t.is_table_type = 1
+					UNION
+					SELECT
+						s.[name],
+						t.[Name],
+						NULL,
+						{(int) TypeCategoryEnum.Assembly}
+					FROM sys.assembly_types AS t
+					INNER JOIN sys.schemas AS s ON t.[schema_id] = s.[schema_id]
+				";
+		
+				SqlDataReader reader = cmd.ExecuteReader();
+				var ordinal = reader.GetOrdinal("type_category");
+				while (reader.Read())
+				{
+					dbTypes.Add(new DbType {
+						TypeSchema = reader["type_schema"].ToString(),
+						TypeName = reader["type_name"].ToString(),
+						BaseType = reader["base_type"].ToString(),
+						TypeCategory = (TypeCategoryEnum) reader.GetInt32(ordinal)
+					});
+				}
+				reader.Close();
+			}
+		}
+	}
+
+	return dbTypes;
+}
+
+private struct DbTableType
+{
+	public string TypeSchema { get; set; }
+	public string TypeName { get; set; }
+	public string ColumnName { get; set; }
+	public string ColumnType { get; set; }
+	public int MaxLength { get; set; }
+	public Type DotNetType { get; set; }
+	public bool IsNullable { get; set; }
+}
+
+private List<DbTableType> dbTableTypes = new List<DbTableType>();
+
+#>

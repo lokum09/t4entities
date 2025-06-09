@@ -1,18 +1,7 @@
-T4Entities
-
----
-
-- ogolna zasada dzialania
-- struktura i konfiguracja
-- jak uruchamiac
-- przyklady uzycia
-
----
-
 TODO:
-- utworzyc kod do generowania enumow
-- utworzyc kod dla generowania procedury
-- byc moze dodac kod do obslugi typow specjalnych: "geography", "geometry", "hierarchyid"
+- create script to generete of enums
+- create script for handle the stored procedures
+- handling special types: "geography", "geometry", "hierarchyid"
 
 DONE:
 - ~~refaktoryzacja i przeniesienie wspolnego kodu do common.t4 i uporzadkowanie kodu w common.t4~~
