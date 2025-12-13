@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - sql
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourPassword123!"
