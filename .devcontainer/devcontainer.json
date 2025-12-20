@@ -6,7 +6,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "forwardPorts": [1433],
-  "postCreateCommand": "dotnet tool install -g dotnet-ef && dotnet tool install -g Microsoft.SqlPackage",
+  "postCreateCommand": "dotnet tool install -g dotnet-ef && dotnet tool install -g Microsoft.SqlPackage && echo 'export PATH=$PATH:/home/vscode/.dotnet/tools' >> ~/.bashrc",
   "customizations": {
     "vscode": {
       "extensions": [
