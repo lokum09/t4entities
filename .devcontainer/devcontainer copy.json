@@ -1,6 +1,0 @@
-{
-  "name": "Codespace + SQL",
-  //"dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
-}

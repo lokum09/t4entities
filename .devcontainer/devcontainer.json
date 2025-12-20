@@ -6,7 +6,17 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "forwardPorts": [1433],
-  "postCreateCommand": "dotnet --info"
+  "postCreateCommand": "dotnet tool install --global dotnet-ef && dotnet tool install -g sqlpackage",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-mssql.mssql"
+      ]
+    }
+  },
+  "features": {
+    "ghcr.io/jlaundry/devcontainer-features/mssql-odbc-driver:1": {}
+  }
   
 
   // Features to add to the dev container. More info: https://containers.dev/features.
