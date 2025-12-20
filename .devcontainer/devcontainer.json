@@ -6,7 +6,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "forwardPorts": [1433],
-  "postCreateCommand": "dotnet tool install -g sqlpackage && dotnet tool install --global dotnet-ef",
+  "postCreateCommand": "dotnet tool install -g dotnet-ef",
   "customizations": {
     "vscode": {
       "extensions": [
