@@ -6,10 +6,7 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "forwardPorts": [1433],
-  "postCreateCommand": "dotnet tool install --global dotnet-ef && dotnet tool install -g sqlpackage",
-  "remoteEnv": {
-    "PATH": "/home/vscode/.dotnet/tools:${PATH}"
-  },
+  "postCreateCommand": "dotnet tool install -g sqlpackage && dotnet tool install --global dotnet-ef",
   "customizations": {
     "vscode": {
       "extensions": [
