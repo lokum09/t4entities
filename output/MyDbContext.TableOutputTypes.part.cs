@@ -18,53 +18,6 @@ public partial class MyDbContext : DbContext
 {
     public static class TableOutputTypes
     {
-		public static class dbo
-		{
-			public class GetAllBrands_Result
-			{
-				public Int32 brand_id { get; set; }
-				public String brand_name { get; set; }
-			}
-
-			public class GetBrandsByIds_Result
-			{
-				public Int32 BrandId { get; set; }
-				public String BrandName { get; set; }
-			}
-
-			public class GetBrandsData_Result
-			{
-				public Int32 BrandId { get; set; }
-				public String BrandName { get; set; }
-				public Int32? Id { get; set; }
-				public String Description { get; set; }
-			}
-
-			public class GetBrandsWithDescription_Result
-			{
-				public Int32 BrandId { get; set; }
-				public String BrandName { get; set; }
-				public String Description { get; set; }
-			}
-
-			public class MyFunction_Result
-			{
-				public Int32? Id { get; set; }
-				public String Name { get; set; }
-			}
-
-		}
-
-		public static class xyz
-		{
-			public class GetAllBrands_Result
-			{
-				public Int32 brand_id { get; set; }
-				public String brand_name { get; set; }
-			}
-
-		}
-
 
     }
 }

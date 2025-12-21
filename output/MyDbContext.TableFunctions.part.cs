@@ -16,8 +16,7 @@ namespace MyApp.EfCore;
 public partial class MyDbContext : DbContext
 {
     public class TableFunctionsSchemaContainer {
-		public DboTableFunctions dbo { get; init; }
-		public XyzTableFunctions xyz { get; init; }
+
 	}
 
     public TableFunctionsSchemaContainer TableFunctions { private set; get; }
@@ -26,77 +25,9 @@ public partial class MyDbContext : DbContext
     {
         TableFunctions = new TableFunctionsSchemaContainer()
         {
-			dbo = new DboTableFunctions { Database = Database },
-			xyz = new XyzTableFunctions { Database = Database },
+
         };
     }
-
-	public class DboTableFunctions
-	{
-		public DatabaseFacade Database { get; init; }
-
-		public IQueryable<MyDbContext.TableOutputTypes.dbo.GetAllBrands_Result> GetAllBrands(Boolean? @isCondition)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@isCondition", @isCondition ?? (object) DBNull.Value),
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.dbo.GetAllBrands_Result>("SELECT * FROM dbo.GetAllBrands(@isCondition)", parameters);
-		}
-
-		public IQueryable<MyDbContext.TableOutputTypes.dbo.GetBrandsByIds_Result> GetBrandsByIds(MyDbContext.TableInputTypes.dbo.IdList @Ids)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@Ids", @Ids != null ? @Ids.ToRecords() : null){ SqlDbType = SqlDbType.Structured, TypeName = "dbo.IdList" },
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.dbo.GetBrandsByIds_Result>("SELECT * FROM dbo.GetBrandsByIds(@Ids)", parameters);
-		}
-
-		public IQueryable<MyDbContext.TableOutputTypes.dbo.GetBrandsData_Result> GetBrandsData(Int64? @Id, Boolean? @IsEven, MyDbContext.TableInputTypes.dbo.IdDescList @List)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@Id", @Id ?? (object) DBNull.Value),
-				new SqlParameter("@IsEven", @IsEven ?? (object) DBNull.Value),
-				new SqlParameter("@List", @List != null ? @List.ToRecords() : null){ SqlDbType = SqlDbType.Structured, TypeName = "dbo.IdDescList" },
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.dbo.GetBrandsData_Result>("SELECT * FROM dbo.GetBrandsData(@Id, @IsEven, @List)", parameters);
-		}
-
-		public IQueryable<MyDbContext.TableOutputTypes.dbo.GetBrandsWithDescription_Result> GetBrandsWithDescription(Boolean? @isCondition, MyDbContext.TableInputTypes.dbo.IdDescList @List)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@isCondition", @isCondition ?? (object) DBNull.Value),
-				new SqlParameter("@List", @List != null ? @List.ToRecords() : null){ SqlDbType = SqlDbType.Structured, TypeName = "dbo.IdDescList" },
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.dbo.GetBrandsWithDescription_Result>("SELECT * FROM dbo.GetBrandsWithDescription(@isCondition, @List)", parameters);
-		}
-
-		public IQueryable<MyDbContext.TableOutputTypes.dbo.MyFunction_Result> MyFunction(MyDbContext.TableInputTypes.dbo.MyTableType @myTable)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@myTable", @myTable != null ? @myTable.ToRecords() : null){ SqlDbType = SqlDbType.Structured, TypeName = "dbo.MyTableType" },
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.dbo.MyFunction_Result>("SELECT * FROM dbo.MyFunction(@myTable)", parameters);
-		}
-	}
-
-	public class XyzTableFunctions
-	{
-		public DatabaseFacade Database { get; init; }
-
-		public IQueryable<MyDbContext.TableOutputTypes.xyz.GetAllBrands_Result> GetAllBrands(Boolean? @isCondition)
-		{
-			var parameters = new SqlParameter[]
-			{
-				new SqlParameter("@isCondition", @isCondition ?? (object) DBNull.Value),
-			};
-			return this.Database.SqlQueryRaw<MyDbContext.TableOutputTypes.xyz.GetAllBrands_Result>("SELECT * FROM xyz.GetAllBrands(@isCondition)", parameters);
-		}
-	}
 
 
 }
