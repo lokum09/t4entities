@@ -210,13 +210,15 @@ private List<DbObject> GetDbObjects(bool returnScalarFunctions)
 					p.USER_DEFINED_TYPE_NAME AS [type_name]
 					--r.*
 				FROM INFORMATION_SCHEMA.ROUTINES r
-				INNER JOIN INFORMATION_SCHEMA.PARAMETERS p ON r.ROUTINE_SCHEMA = p.SPECIFIC_SCHEMA AND r.ROUTINE_NAME = p.SPECIFIC_NAME
+				LEFT JOIN INFORMATION_SCHEMA.PARAMETERS p
+					ON r.ROUTINE_SCHEMA = p.SPECIFIC_SCHEMA AND r.ROUTINE_NAME = p.SPECIFIC_NAME AND p.PARAMETER_MODE = 'IN'
 				WHERE r.ROUTINE_TYPE = 'FUNCTION' --AND p.PARAMETER_MODE = 'IN' 
 					AND r.DATA_TYPE {(returnScalarFunctions ? "!=" : "=")} 'TABLE'
 					AND NOT EXISTS (
 						SELECT 1 
 						FROM INFORMATION_SCHEMA.PARAMETERS 
-						WHERE SPECIFIC_SCHEMA = p.SPECIFIC_SCHEMA AND SPECIFIC_NAME = p.SPECIFIC_NAME AND DATA_TYPE IN ({ExcludedSqlTypesAsString})
+						WHERE SPECIFIC_SCHEMA = p.SPECIFIC_SCHEMA AND SPECIFIC_NAME = p.SPECIFIC_NAME 
+							AND PARAMETER_MODE = 'IN' AND DATA_TYPE IN ({ExcludedSqlTypesAsString})
 					)
 				ORDER BY p.SPECIFIC_SCHEMA, p.SPECIFIC_NAME, p.ORDINAL_POSITION
 				";
@@ -244,26 +246,29 @@ private List<DbObject> GetDbObjects(bool returnScalarFunctions)
 						results.Add(functionFullName, dbObject);
 					}
 
-					var parameterName = reader["parameter_name"].ToString();
-					var parameterType = reader["parameter_type"].ToString();
-					//var parameterLength = (int) reader["parameter_length"];
+					
+					if (reader["parameter_name"] != DBNull.Value)
+					{
+						var parameterName = reader["parameter_name"].ToString();
+						var parameterType = reader["parameter_type"].ToString();
 
-					var typeSchema = reader["type_schema"].ToString();
-					var typeName = reader["type_name"].ToString();
-					var dbType = dbTypes.SingleOrDefault(x => x.TypeSchema == typeSchema && x.TypeName == typeName);
-					var typeCategory = dbType.TypeCategory;
+						var typeSchema = reader["type_schema"].ToString();
+						var typeName = reader["type_name"].ToString();
+						var dbType = dbTypes.SingleOrDefault(x => x.TypeSchema == typeSchema && x.TypeName == typeName);
+						var typeCategory = dbType.TypeCategory;
 
-					string dotNetType = typeCategory == TypeCategoryEnum.Table
-						? $"{ClassName}.{TableInputTypes}.{typeSchema}.{typeName}"
-						: ConvertSqlToDotNetType(typeCategory == TypeCategoryEnum.Scalar ? dbType.BaseType : parameterType).Name;
-
-					dbObject.Arguments.Add(new DbArgument {
-						ArgumentName = parameterName,
-						DotNetType = dotNetType,
-						SqlType = typeCategory == TypeCategoryEnum.Table ? $"{typeSchema}.{typeName}" : parameterType,
-						SqlBaseType = dbType.BaseType == null ? null : FixSqlType(dbType.BaseType),
-						TypeCategory = typeCategory
-					}); 
+						string dotNetType = typeCategory == TypeCategoryEnum.Table
+							? $"{ClassName}.{TableInputTypes}.{typeSchema}.{typeName}"
+							: ConvertSqlToDotNetType(typeCategory == TypeCategoryEnum.Scalar ? dbType.BaseType : parameterType).Name;
+			
+						dbObject.Arguments.Add(new DbArgument {
+							ArgumentName = parameterName,
+							DotNetType = dotNetType,
+							SqlType = typeCategory == TypeCategoryEnum.Table ? $"{typeSchema}.{typeName}" : parameterType,
+							SqlBaseType = dbType.BaseType == null ? null : FixSqlType(dbType.BaseType),
+							TypeCategory = typeCategory
+						}); 
+					}
 				}
 				reader.Close();
 
