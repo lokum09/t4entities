@@ -6,7 +6,8 @@ INPUT_FOLDER="./../src"
 OUTPUT_FOLDER="./BikesStore.Database.Tests"
 DLL_FOLDER="/root/.nuget/packages/system.data.sqlclient/4.9.0/runtimes/unix/lib/net8.0"
 
-#dotnet ef dbcontext scaffold "$CONNECTION_STRING" Microsoft.EntityFrameworkCore.SqlServer --force --no-onconfiguring --prefix-output --data-annotations --context MyDbContext --context-dir . -o Entities --no-build
+dotnet ef dbcontext scaffold "$CONNECTION_STRING" Microsoft.EntityFrameworkCore.SqlServer --force --no-onconfiguring --prefix-output --data-annotations --context MyDbContext --project "$OUTPUT_FOLDER" --context-dir "./" -o Entities --no-build
+#--namespace "$NAMESPACE.Entities" --context-namespace "$NAMESPACE"
 
 $TT_PATH -P=$DLL_FOLDER -a=!!ConnectionString!"$CONNECTION_STRING" -a=!!Namespace!"$NAMESPACE" -a=!!ClassName!"$CLASS_NAME" -out "$OUTPUT_FOLDER/$CLASS_NAME.TableInputTypes.part.cs" "$INPUT_FOLDER/$CLASS_NAME.TableInputTypes.part.t4"
 

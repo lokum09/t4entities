@@ -1,13 +1,13 @@
 -------------------------------------------------------
 
-:r "./../enums/Actions.enum.sql"
+:r "./../enums/SystemActions.enum.sql"
 
 -------------------------------------------------------
 
-PRINT 'Actions.seed.sql is running ...'
+PRINT 'SystemActions.seed.sql is running ...'
 GO
 
-MERGE INTO [xyz].[Actions] AS [Target]
+MERGE INTO [xyz].[SystemActions] AS [Target]
 USING (VALUES
 	  ($(Actions_Initialization),	N'Initialization')
 	, ($(Actions_Complete),			N'Complete')

@@ -12,20 +12,20 @@ public partial class MyDbContext : DbContext
     {
     }
 
-    public virtual DbSet<BikesStore.Database.Tests.Entities.Action> Actions { get; set; }
+    public virtual DbSet<Status> Statuses { get; set; }
 
-    public virtual DbSet<BikesStore.Database.Tests.Entities.Status> Statuses { get; set; }
+    public virtual DbSet<SystemAction> SystemActions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<BikesStore.Database.Tests.Entities.Action>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_xyz.Actions");
-        });
-
-        modelBuilder.Entity<BikesStore.Database.Tests.Entities.Status>(entity =>
+        modelBuilder.Entity<Status>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_abc.Statuses");
+        });
+
+        modelBuilder.Entity<SystemAction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_xyz.SystemActions");
         });
 
         OnModelCreatingPartial(modelBuilder);

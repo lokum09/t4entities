@@ -1,22 +1,33 @@
-﻿:setvar Actions_Initialization "1"
-:setvar Actions_Complete "2"
-:setvar Actions_Withdraw "3"
-PRINT '--------------------------------'
+﻿PRINT '--------------------------------'
 PRINT 'BEGIN Post-Deployment Script'
 PRINT '--------------------------------'
 
--------------------------------------------------------
+PRINT 'Creating function [abc].[GetHello2] ...'
+GO
 
-
--------------------------------------------------------
-
-PRINT 'Actions.seed.sql is running ...'
+CREATE OR ALTER FUNCTION [abc].[GetHello2](@input NVARCHAR(50))
+RETURNS NVARCHAR(50)
+AS
+BEGIN
+    RETURN CONCAT('Hello ', @input, '!');
+END
 GO
 :setvar Actions_Initialization "1"
 :setvar Actions_Complete "2"
 :setvar Actions_Withdraw "3"
 
-MERGE INTO [xyz].[Actions] AS [Target]
+-------------------------------------------------------
+
+
+-------------------------------------------------------
+
+PRINT 'SystemActions.seed.sql is running ...'
+GO
+:setvar Actions_Initialization "1"
+:setvar Actions_Complete "2"
+:setvar Actions_Withdraw "3"
+
+MERGE INTO [xyz].[SystemActions] AS [Target]
 USING (VALUES
 	  ($(Actions_Initialization),	N'Initialization')
 	, ($(Actions_Complete),			N'Complete')
@@ -51,8 +62,8 @@ RETURNS TABLE
 AS
 RETURN (
     SELECT Id, [Name]
-    FROM xyz.Actions
-    WHERE Id != $(Actions_Initialization)
+    FROM xyz.SystemActions
+    WHERE Id != @Id
 );
 GO
 

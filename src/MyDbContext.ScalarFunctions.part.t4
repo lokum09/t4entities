@@ -73,7 +73,9 @@ public static class <#= ClassName + ScalarFunctions #>
                                 dotnetArgs.Append($"{(dotnetArgs.Length > 0 ? ", " : string.Empty)}typeof({arg.DotNetType})");
                             }
 
-                            return $"{Content(content2)}{Tab(2)}modelBuilder.HasDbFunction(typeof({ClassName}{ScalarFunctions}.{next2.FunctionSchema}).GetMethod(nameof({ClassName}{ScalarFunctions}.{next2.FunctionSchema}.{next2.FunctionName}), new[] {{ {dotnetArgs} }})).HasSchema(\"{next2.FunctionSchema}\");";
+                            var parameters = dotnetArgs.Length == 0 ? string.Empty : $", new[] {{ {dotnetArgs} }}";
+
+                            return $"{Content(content2)}{Tab(2)}modelBuilder.HasDbFunction(typeof({ClassName}{ScalarFunctions}.{next2.FunctionSchema}).GetMethod(nameof({ClassName}{ScalarFunctions}.{next2.FunctionSchema}.{next2.FunctionName}){parameters})).HasSchema(\"{next2.FunctionSchema}\");";
                         },
                         result => $"{content}\n{result}"
                     )

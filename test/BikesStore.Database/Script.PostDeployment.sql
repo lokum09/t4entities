@@ -2,7 +2,9 @@ PRINT '--------------------------------'
 PRINT 'BEGIN Post-Deployment Script'
 PRINT '--------------------------------'
 
-:r "./objects/xyz/seeds/Actions.seed.sql"
+:r "./objects/abc/functions/GetHello2.function.sql"
+
+:r "./objects/xyz/seeds/SystemActions.seed.sql"
 :r "./objects/xyz/functions/GetMainActions.function.sql"
 
 PRINT '--------------------------------'

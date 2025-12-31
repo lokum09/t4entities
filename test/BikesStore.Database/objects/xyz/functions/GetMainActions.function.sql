@@ -1,6 +1,6 @@
 -------------------------------------------------------
 
-:r "./../enums/Actions.enum.sql"
+:r "./../enums/SystemActions.enum.sql"
 
 -------------------------------------------------------
 
@@ -15,7 +15,7 @@ RETURNS TABLE
 AS
 RETURN (
     SELECT Id, [Name]
-    FROM xyz.Actions
-    WHERE Id != $(Actions_Initialization)
+    FROM xyz.SystemActions
+    WHERE Id != @Id
 );
 GO

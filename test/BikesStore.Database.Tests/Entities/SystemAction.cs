@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BikesStore.Database.Tests.Entities;
 
-[Table("Actions", Schema = "xyz")]
-public partial class Action
+[Table("SystemActions", Schema = "xyz")]
+public partial class SystemAction
 {
     [Key]
     public byte Id { get; set; }
