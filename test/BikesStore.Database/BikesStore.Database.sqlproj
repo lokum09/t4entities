@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="2.0.0" />
+  <PropertyGroup>
+    <Name>BikesStore.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <ProjectGuid>{00000000-0000-0000-0000-000000000001}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <PreDeploy Include="Script.PreDeployment.sql" />
+    <PostDeploy Include="Script.PostDeployment.sql" />
+    <None Include="objects/**/*.enum.sql" />
+    <None Include="objects/**/*.function.sql" />
+    <None Include="objects/**/*.procedure.sql" />
+    <None Include="objects/**/*.seed.sql" />
+    <None Include="objects/**/*.view.sql" />
+    <None Include="objects/xyz/functons/GetMainActions.function.sql" />
+  </ItemGroup>
+</Project>

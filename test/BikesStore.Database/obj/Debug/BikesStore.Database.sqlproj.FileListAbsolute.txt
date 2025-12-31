@@ -1,0 +1,5 @@
+/workspace/test/BikesStore.Database/bin/Debug/BikesStore.Database.dacpac
+/workspace/test/BikesStore.Database/obj/Debug/Model.xml
+/workspace/test/BikesStore.Database/obj/Debug/refactor.xml
+/workspace/test/BikesStore.Database/obj/Debug/postdeploy.sql
+/workspace/test/BikesStore.Database/obj/Debug/predeploy.sql

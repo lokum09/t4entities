@@ -43,7 +43,7 @@ public partial class <#= ClassName #> : DbContext
                             );
 
                         var sb = new StringBuilder(content2);
-                        sb.Append($"{Tab(3)}public class {next2.Key}_Result\n{Tab(3)}{{");
+                        sb.Append($"{Tab(3)}[Keyless]\n{Tab(3)}public class {next2.Key}_Result\n{Tab(3)}{{");
                         sb.Append(properties);
                         sb.Append($"\n{Tab(3)}}}\n\n");
                         return sb.ToString();
