@@ -12,6 +12,7 @@
 *.pdb
 *.exe
 *.dll
+*.log
 *.dacpac
 *.publish.xml
 *.nupkg
