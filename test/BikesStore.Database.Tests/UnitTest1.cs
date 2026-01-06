@@ -13,20 +13,11 @@ public class UnitTest1 : IClassFixture<DbContextFixture>
     }
 
     [Fact]
-    public void Test1()
-    {
-        Assert.Equal(1, 1);
-    }
-
-    [Fact]
     public async Task Should_Say_HelloWorld()
     {
-        //using var ctx = new MyDbContext();
-        
+        string value = context.ScalarFunctions.dbo.GetHello("a", "b");
 
-        string value = context.ScalarFunctions.dbo.GetHello();
-
-        Assert.Equal("Hello world!", value);
+        Assert.Equal("a b", value);
     }
 
     [Fact]
@@ -44,5 +35,13 @@ public class UnitTest1 : IClassFixture<DbContextFixture>
 
         Assert.Equal(1, item.Id);
         Assert.Equal("Initialization", item.Name);
+    }
+
+    [Fact]
+    public async Task Check_GetActions_Function()
+    {
+        IQueryable<MyDbContext.TableOutputTypes.xyz.GetActions_Result> items = context.TableFunctions.xyz.GetActions();
+
+        Assert.Equal(3, items.Count());
     }
 }
