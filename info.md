@@ -1,7 +1,7 @@
 TODO:
 - create script to generete of enums
 - create script for handle the stored procedures
-- handling special types: "geography", "geometry", "hierarchyid"
+- handling specific types: "geography", "geometry", "hierarchyid"
 
 DONE:
 - ~~refaktoryzacja i przeniesienie wspolnego kodu do common.t4 i uporzadkowanie kodu w common.t4~~
